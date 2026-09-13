@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>선물이 도착했습니다</title>
+<meta name="description" content="눌러서 선물상자를 열어보세요">
+<meta property="og:type" content="website">
+<meta property="og:title" content="선물이 도착했습니다">
+<meta property="og:description" content="눌러서 선물상자를 열어보세요">
+<meta name="theme-color" content="#150E24">
+<!-- 배포 후 아래 두 줄의 주소를 본인 주소로 바꾸면 카톡 공유 시 썸네일이 뜹니다
+     예) https://내사이트이름.netlify.app/thumbnail.png -->
+<meta property="og:image" content="thumbnail.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+
+<style>
+:root{
+  --ink:#120B1F;
+  --deep:#2A1740;
+  --rose:#D8546B;
+  --rose-dark:#A8394F;
+  --rose-light:#E87285;
+  --gold:#F2CE7E;
+  --glow:#FFE7B4;
+  --paper:#F6EFE6;
+  --sans:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  --serif:"Gowun Batang",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(120% 80% at 50% 38%, var(--deep) 0%, var(--ink) 62%, #0B0713 100%);
+  color:var(--paper);
+  font-family:var(--sans);
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+/* ── stage ───────────────────────────────── */
+.stage{
+  position:fixed; inset:0;
+  display:grid; place-items:center;
+  padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));
+}
+.scene{
+  grid-area:1/1;
+  display:flex; flex-direction:column; align-items:center;
+  width:100%; max-width:520px;
+  transition:opacity .5s ease, transform .6s cubic-bezier(.2,.7,.3,1);
+}
+.scene[hidden]{display:none}
+.scene.is-out{opacity:0; transform:scale(.94); pointer-events:none}
+.scene.is-in{animation:riseIn .8s cubic-bezier(.2,.8,.25,1) both}
+@keyframes riseIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+
+/* ── closed scene ────────────────────────── */
+h1{
+  font-family:var(--serif);
+  font-weight:700;
+  font-size:clamp(26px,7.2vw,40px);
+  letter-spacing:-.02em;
+  line-height:1.35;
+  text-align:center;
+  text-shadow:0 0 34px rgba(242,206,126,.28);
+}
+.sub{
+  margin-top:10px;
+  font-size:clamp(13px,3.6vw,15px);
+  color:rgba(246,239,230,.62);
+  letter-spacing:.01em;
+}
+
+.box-btn{
+  appearance:none;background:none;border:0;cursor:pointer;
+  margin:clamp(28px,7vh,56px) 0 0;
+  padding:26px;
+  display:block;
+  border-radius:28px;
+}
+.box-btn:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+
+.box{
+  position:relative;
+  width:clamp(150px,44vw,196px);
+  aspect-ratio:1/.92;
+  transform-origin:50% 100%;
+}
+.box.wiggle{animation:wiggle .62s ease-in-out}
+@keyframes wiggle{
+  0%,100%{transform:rotate(0) translateY(0)}
+  15%{transform:rotate(-6deg) translateY(-4px)}
+  32%{transform:rotate(5deg) translateY(-2px)}
+  50%{transform:rotate(-4deg) translateY(-8px)}
+  70%{transform:rotate(3deg)}
+  86%{transform:rotate(-2deg)}
+}
+
+/* body of the box */
+.box-base{
+  position:absolute; left:0; right:0; bottom:0; height:72%;
+  border-radius:8px 8px 12px 12px;
+  background:linear-gradient(105deg,var(--rose-dark) 0%,var(--rose) 42%,var(--rose-light) 100%);
+  box-shadow:inset 0 -18px 30px rgba(0,0,0,.28), 0 26px 44px -18px rgba(0,0,0,.7);
+  overflow:hidden;
+}
+.box-base::after{ /* vertical ribbon */
+  content:""; position:absolute; top:0; bottom:0; left:50%; width:17%;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,#D2A855,var(--gold) 45%,#D2A855);
+}
+/* warm light escaping once opened */
+.box-inner{
+  position:absolute; left:6%; right:6%; bottom:70%; height:14px;
+  border-radius:50%;
+  background:var(--glow);
+  opacity:0; filter:blur(6px);
+  transition:opacity .25s ease;
+}
+.beam{
+  position:absolute; left:50%; top:26%;
+  width:76%; height:76%;
+  transform:translate(-50%,-40%) scale(.2);
+  background:radial-gradient(closest-side,rgba(255,231,180,.95),rgba(255,231,180,0));
+  opacity:0; pointer-events:none;
+}
+
+.box-lid{
+  position:absolute; left:-6%; right:-6%; top:8%; height:26%;
+  border-radius:10px 10px 6px 6px;
+  background:linear-gradient(105deg,var(--rose) 0%,var(--rose-light) 50%,var(--rose) 100%);
+  box-shadow:0 10px 18px -8px rgba(0,0,0,.6), inset 0 2px 0 rgba(255,255,255,.22);
+  transform-origin:50% 100%;
+  transition:transform .85s cubic-bezier(.3,-.3,.4,1), opacity .5s ease .45s;
+}
+.box-lid::after{
+  content:""; position:absolute; top:0; bottom:0; left:50%; width:15%;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,#D2A855,var(--gold) 45%,#D2A855);
+}
+.bow{
+  position:absolute; left:50%; top:-34%; width:56%; height:46%;
+  transform:translateX(-50%);
+}
+.bow i{
+  position:absolute; top:8%; width:46%; height:84%;
+  border:6px solid var(--gold);
+  background:rgba(242,206,126,.18);
+}
+.bow i:first-child{left:0;  border-radius:70% 30% 60% 40%; transform:rotate(-12deg)}
+.bow i:last-child {right:0; border-radius:30% 70% 40% 60%; transform:rotate(12deg)}
+.bow b{
+  position:absolute; left:50%; top:36%; width:20%; aspect-ratio:1;
+  transform:translate(-50%,-10%); border-radius:50%;
+  background:var(--gold); box-shadow:0 0 14px rgba(242,206,126,.7);
+}
+
+/* open state */
+.box.open .box-lid{transform:translateY(-190%) rotate(-24deg) scale(1.04); opacity:0}
+.box.open .box-inner{opacity:1}
+.box.open .beam{animation:beam 1.1s ease-out forwards}
+@keyframes beam{
+  0%{opacity:0;transform:translate(-50%,-40%) scale(.2)}
+  30%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-40%) scale(4.4)}
+}
+
+.hint{
+  margin-top:26px;
+  font-size:14px; letter-spacing:.02em;
+  color:rgba(246,239,230,.55);
+  animation:breathe 2.6s ease-in-out infinite;
+}
+@keyframes breathe{0%,100%{opacity:.45}50%{opacity:.95}}
+
+/* ── video scene ─────────────────────────── */
+.frame{
+  position:relative;
+  border-radius:18px;
+  overflow:hidden;
+  background:#000;
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.9), 0 0 0 1px rgba(242,206,126,.28), 0 0 60px -14px rgba(242,206,126,.25);
+  line-height:0;
+}
+.frame video{
+  display:block;
+  width:auto; height:auto;
+  max-width:min(92vw,520px);
+  max-height:66dvh;
+}
+.frame .fallback{
+  display:none;
+  font-family:var(--sans);
+  line-height:1.7; font-size:14px;
+  color:rgba(246,239,230,.8);
+  padding:36px 24px; width:min(86vw,420px);
+  text-align:center;
+}
+.frame.no-src video{display:none}
+.frame.no-src .fallback{display:block}
+.frame code{font-size:13px;color:var(--gold)}
+
+.sound-cta{
+  position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
+  display:none; align-items:center; gap:7px;
+  padding:9px 15px; border:0; border-radius:999px;
+  background:rgba(18,11,31,.78); backdrop-filter:blur(8px);
+  color:var(--paper); font-family:var(--sans); font-size:13px; cursor:pointer;
+  box-shadow:0 0 0 1px rgba(242,206,126,.4);
+}
+.sound-cta.show{display:flex}
+
+.message{
+  margin-top:22px; padding:0 8px;
+  font-family:var(--serif);
+  font-size:clamp(16px,4.4vw,19px);
+  line-height:1.75; text-align:center;
+  max-width:30em;
+}
+.from{
+  margin-top:12px; font-size:13px; letter-spacing:.04em;
+  color:rgba(242,206,126,.85);
+}
+.actions{display:flex; gap:10px; margin-top:22px}
+.btn{
+  appearance:none; border:0; cursor:pointer;
+  padding:11px 20px; border-radius:999px;
+  font-family:var(--sans); font-size:14px; font-weight:500;
+  background:rgba(246,239,230,.09);
+  color:rgba(246,239,230,.9);
+  box-shadow:inset 0 0 0 1px rgba(246,239,230,.16);
+  transition:background .2s ease;
+}
+.btn:hover{background:rgba(246,239,230,.16)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:9}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <!-- 1. 닫힌 상자 -->
+  <section class="scene" id="sceneClosed">
+    <h1 id="title">선물이 도착했습니다</h1>
+    <p class="sub" id="subtitle">당신을 위해 준비했어요</p>
+
+    <button class="box-btn" id="openBtn" aria-label="선물상자 열기">
+      <div class="box" id="box">
+        <div class="beam"></div>
+        <div class="box-base"><div class="box-inner"></div></div>
+        <div class="box-lid">
+          <div class="bow"><i></i><i></i><b></b></div>
+        </div>
+      </div>
+    </button>
+
+    <p class="hint" id="hint">상자를 눌러 열어보세요</p>
+  </section>
+
+  <!-- 2. 영상 -->
+  <section class="scene" id="sceneVideo" hidden>
+    <div class="frame" id="frame">
+      <video id="video" playsinline webkit-playsinline preload="auto"></video>
+      <p class="fallback">재생할 영상이 아직 연결되지 않았어요.<br>
+        파일 상단 <code>CONFIG.videoSrc</code> 에 영상 주소를 넣어주세요.</p>
+      <button class="sound-cta" id="soundCta">🔈 소리 켜기</button>
+    </div>
+    <p class="message" id="message"></p>
+    <p class="from" id="from"></p>
+    <div class="actions">
+      <button class="btn" id="replayBtn">다시 보기</button>
+      <button class="btn" id="backBtn">상자 닫기</button>
+    </div>
+  </section>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+/* ══════════════════════════════════════════
+   여기만 수정하면 됩니다
+   ══════════════════════════════════════════ */
+const CONFIG = {
+  title:    "선물이 도착했습니다",
+  subtitle: "당신을 위해 준비했어요",
+  hint:     "상자를 눌러 열어보세요",
+
+  videoSrc: "gift.mp4",   // mp4 파일 경로 또는 https 주소
+  poster:   "",           // 첫 프레임 이미지(선택)
+
+  message:  "",           // 영상 아래 문구(선택)
+  from:     ""            // 보낸 사람(선택)
+};
+/* URL 파라미터로도 덮어쓸 수 있습니다
+   예) page.html?v=https://.../a.mp4&m=생일축하해&f=유정  */
+const q = new URLSearchParams(location.search);
+const cfg = { ...CONFIG };
+if (q.get('v')) cfg.videoSrc = q.get('v');
+if (q.get('t')) cfg.title    = q.get('t');
+if (q.get('m')) cfg.message  = q.get('m');
+if (q.get('f')) cfg.from     = q.get('f');
+
+const $ = id => document.getElementById(id);
+const video = $('video'), frame = $('frame');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* 초기 렌더 */
+$('title').textContent    = cfg.title;
+$('subtitle').textContent = cfg.subtitle;
+$('hint').textContent     = cfg.hint;
+document.title            = cfg.title;
+$('message').textContent  = cfg.message;
+$('from').textContent     = cfg.from ? 'from. ' + cfg.from : '';
+
+if (cfg.videoSrc) {
+  video.src = cfg.videoSrc;
+  if (cfg.poster) video.poster = cfg.poster;
+} else {
+  frame.classList.add('no-src');
+}
+
+/* ── 모바일 자동재생 잠금 해제 ──────────────
+   iOS/안드로이드는 사용자 제스처 안에서 play()가
+   한 번 호출돼야 이후 재생이 허용됩니다.
+   상자를 누르는 순간 무음으로 재생→즉시 정지해 둡니다. */
+let unlocked = false;
+function unlock(){
+  if (unlocked || !cfg.videoSrc) return;
+  unlocked = true;
+  video.muted = true;
+  const p = video.play();
+  if (p && p.then) p.then(() => { video.pause(); video.currentTime = 0; }).catch(()=>{});
+}
+
+/* ── 열기 시퀀스 ──────────────────────────── */
+const box = $('box');
+let opening = false;
+
+function openGift(){
+  if (opening) return;
+  opening = true;
+  unlock();                                   // 제스처 내에서 호출
+
+  box.classList.add('wiggle');
+  const t1 = reduced ? 0 : 560;
+  const t2 = reduced ? 0 : 1150;
+
+  setTimeout(() => {
+    box.classList.remove('wiggle');
+    box.classList.add('open');
+    if (!reduced) burst();
+  }, t1);
+
+  setTimeout(() => {
+    $('sceneClosed').classList.add('is-out');
+    setTimeout(() => {
+      $('sceneClosed').hidden = true;
+      const sv = $('sceneVideo');
+      sv.hidden = false;
+      sv.classList.add('is-in');
+      playVideo();
+    }, reduced ? 0 : 420);
+  }, t2);
+}
+
+/* ── 재생 (소리 우선, 막히면 무음 + 버튼) ── */
+function playVideo(){
+  if (!cfg.videoSrc) return;
+  video.currentTime = 0;
+  video.muted = false;
+  video.volume = 1;
+  const p = video.play();
+  if (p && p.catch) {
+    p.catch(() => {
+      video.muted = true;
+      video.play().catch(()=>{});
+      $('soundCta').classList.add('show');
+    });
+  }
+}
+$('soundCta').addEventListener('click', () => {
+  video.muted = false;
+  video.play();
+  $('soundCta').classList.remove('show');
+});
+
+$('openBtn').addEventListener('click', openGift);
+$('replayBtn').addEventListener('click', playVideo);
+$('backBtn').addEventListener('click', () => {
+  video.pause();
+  const sv = $('sceneVideo');
+  sv.hidden = true; sv.classList.remove('is-in');
+  const sc = $('sceneClosed');
+  sc.hidden = false; sc.classList.remove('is-out');
+  box.classList.remove('open');
+  $('soundCta').classList.remove('show');
+  opening = false;
+});
+
+/* ── 색종이 ───────────────────────────────── */
+const cvs = $('confetti'), ctx = cvs.getContext('2d');
+let dpr = Math.min(devicePixelRatio || 1, 2), parts = [], raf = null;
+function resize(){
+  cvs.width = innerWidth * dpr; cvs.height = innerHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize(); addEventListener('resize', resize);
+
+function burst(){
+  const r = box.getBoundingClientRect();
+  const ox = r.left + r.width / 2, oy = r.top + r.height * .3;
+  const colors = ['#F2CE7E','#D8546B','#F6EFE6','#E87285','#FFE7B4'];
+  for (let i = 0; i < 130; i++){
+    const a = Math.random() * Math.PI * 2, s = 3 + Math.random() * 9;
+    parts.push({
+      x: ox, y: oy,
+      vx: Math.cos(a) * s * .7,
+      vy: Math.sin(a) * s - 6,
+      w: 5 + Math.random() * 6, h: 8 + Math.random() * 8,
+      rot: Math.random() * 6, vr: (Math.random() - .5) * .3,
+      c: colors[i % colors.length], life: 1
+    });
+  }
+  if (!raf) raf = requestAnimationFrame(tick);
+}
+function tick(){
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  parts.forEach(p => {
+    p.vy += .32; p.vx *= .992; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+    p.life -= .006;
+    ctx.save();
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.c;
+    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    ctx.restore();
+  });
+  parts = parts.filter(p => p.life > 0 && p.y < innerHeight + 60);
+  if (parts.length) raf = requestAnimationFrame(tick);
+  else { ctx.clearRect(0, 0, innerWidth, innerHeight); raf = null; }
+}
+</script>
+</body>
+</html>
